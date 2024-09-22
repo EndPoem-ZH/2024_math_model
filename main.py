@@ -1,5 +1,6 @@
 # 大数据驱动的地理综合问题
 
+import datetime
 import numpy as np
 # pip install netCDF4
 import netCDF4 as nc
@@ -17,8 +18,28 @@ pre_set = nc.Dataset('database/CHM_PRE_0.25dg_19612022.nc')
 ### 问题1.1 按时间求各地平均降水量，绘制热力图，查看空间分布情况
 
 # 提取年份和降水量数据
-times_var = pre_set.variables['time'][:]  # 获取年份数据
-pre_var = pre_set.variables['pre'][:]  # 获取降水量数据 (time, latitude, longitude)
+
+time_var = pre_set.variables['time']
+time_units = time_var.units  # 假设时间单位是 "hours since 1961-01-01 00:00:00"
+time_values = time_var[:]  # 获取时间数值，单位为小时
+
+# 确定时间基准点
+base_time = datetime.datetime(1961, 1, 1)  # 基准时间为1961-01-01 00:00
+
+# 计算1990年1月1日到2020年1月1日的小时数
+start_date = datetime.datetime(1990, 1, 1)  # 1990-01-01 00:00
+end_date = datetime.datetime(2020, 1, 1)    # 2020-01-01 00:00
+
+# 计算从基准时间开始的小时数
+start_hours = (start_date - base_time).total_seconds() / 3600  # 从1961-01-01到1990-01-01的小时数
+end_hours = (end_date - base_time).total_seconds() / 3600      # 从1961-01-01到2020-01-01的小时数
+
+time_mask = (time_values >= start_hours) & (time_values <= end_hours)
+time_indices = np.where(time_mask)[0]  # 获取对应的时间索引
+
+pre_vara = pre_set.variables['pre']  # 假设降水量变量名为'pre'
+pre_var = pre_vara[time_indices, :, :]  # 根据时间索引提取对应的数据
+
 
 # 掩码(144*256, 在国界内为 True，国界外为 False)
 mask = pre_var >= 0
@@ -36,7 +57,8 @@ print("Mean Precipitation Shape:", mean_precipitation.shape)
 # 绘图
 # 绘制平均降水量图像
 plt.figure(figsize=(10, 6))
-plt.imshow(mean_precipitation, cmap='viridis', aspect='auto', norm=colors.Normalize(vmin=0, vmax=np.nanmax(mean_precipitation)))
+plt.imshow(mean_precipitation, cmap='Blues', aspect='auto', 
+           norm=colors.Normalize(vmin=0, vmax=np.nanmax(mean_precipitation)))
 plt.colorbar(label='Mean Precipitation (mm)')
 plt.title('Mean Precipitation Over the Study Period')
 plt.xlabel('Longitude')
