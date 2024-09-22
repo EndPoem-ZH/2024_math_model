@@ -48,7 +48,7 @@ mask = pre_var >= 0
 masked_pre = np.where(mask, pre_var, np.nan)  # 使用 NaN 替换国界外的降水量
 
 # 计算国界内的平均降水量，排除 NaN 值
-mean_precipitation = np.nanmean(masked_pre, axis=0)  # 计算平均值 (latitude, longitude)
+mean_precipitation = np.nanmean(masked_pre, axis=0) * 365  # 计算年平均值 (latitude, longitude)
 
 # 打印形状和示例数据
 print("Masked Precipitation Shape:", masked_pre.shape)
