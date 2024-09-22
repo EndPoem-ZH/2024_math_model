@@ -12,8 +12,7 @@ pre_set = nc.Dataset('database/CHM_PRE_0.25dg_19612022.nc')
 # 查看数据集信息
 # print(pre_set)
 
-## 问题1 
-
+## 问题1 描述降水量和土地利用
 
 ### 问题1.1 按时间求各地平均降水量，绘制热力图，查看空间分布情况
 
@@ -44,15 +43,14 @@ plt.xlabel('Longitude')
 plt.ylabel('Latitude')
 
 # 添加经纬度刻度
-plt.xticks(ticks=np.arange(0, 256, 32), labels=np.linspace(-180, 180, num=256)[::32].astype(int))  # 假设256表示经度
-plt.yticks(ticks=np.arange(0, 144, 18), labels=np.linspace(-90, 90, num=144)[::18].astype(int))  # 假设144表示纬度
+plt.xticks(ticks=np.arange(0, 256, 32), labels=np.linspace(72, 136, num=256)[::32].astype(int))  # 假设256表示经度
+plt.yticks(ticks=np.arange(0, 144, 18), labels=np.linspace(18, 54, num=144)[::18].astype(int))  # 假设144表示纬度
 
 # 翻转 y 轴（纬度）
 plt.gca().invert_yaxis() 
 
 # 显示图像
 plt.show()
-
 
 
 
