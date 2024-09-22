@@ -17,7 +17,8 @@ pre_set = nc.Dataset('database/CHM_PRE_0.25dg_19612022.nc')
 ### 问题1.1 按时间求各地平均降水量，绘制热力图，查看空间分布情况
 
 # 提取年份和降水量数据
-times_var = pre_set.variables['time'][:]  # 获取年份数据
+times_var = pre_set.variables['time'][:] / 24  # 获取时间数据(单位: 天)
+
 pre_var = pre_set.variables['pre'][:]  # 获取降水量数据 (time, latitude, longitude)
 
 # 掩码(144*256, 在国界内为 True，国界外为 False)
@@ -26,17 +27,14 @@ mask = pre_var >= 0
 # 获取国界内的降水量数据
 masked_pre = np.where(mask, pre_var, np.nan)  # 使用 NaN 替换国界外的降水量
 
-# 计算国界内的平均降水量，排除 NaN 值
-mean_precipitation = np.nanmean(masked_pre, axis=0)  # 计算平均值 (latitude, longitude)
-
-# 打印形状和示例数据
-print("Masked Precipitation Shape:", masked_pre.shape)
-print("Mean Precipitation Shape:", mean_precipitation.shape)
+# 计算1990到2020国界内的平均降水量，排除 NaN 值
+start_index = 10592 # 从1961.1.1到1990.1.1共经过10592天
+end_index = 21549   # 从1961.1.1到2020.1.1共经过21549天
+mean_precipitation = np.nanmean(masked_pre[start_index:end_index, :, :], axis=0)  # 计算平均值 (latitude, longitude)
 
 # 绘图
-
 # 创建一个自定义的蓝色渐变
-cmap = colors.LinearSegmentedColormap.from_list('custom_blue', [(0.8, 0.9, 1), (0, 0, 0.8)])
+cmap = colors.LinearSegmentedColormap.from_list('custom_blue', [(1, 1, 1), (0, 0, 1)])
 
 # 绘制平均降水量图像
 plt.figure(figsize=(10, 6))
@@ -55,6 +53,8 @@ plt.gca().invert_yaxis()
 
 # 显示图像
 plt.show()
+
+### 问题1.2 按时间求各地平均降水量，绘制热力图，查看空间分布情况
 
 
 
