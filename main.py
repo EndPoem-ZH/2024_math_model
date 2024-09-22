@@ -34,9 +34,13 @@ print("Masked Precipitation Shape:", masked_pre.shape)
 print("Mean Precipitation Shape:", mean_precipitation.shape)
 
 # 绘图
+
+# 创建一个自定义的蓝色渐变
+cmap = colors.LinearSegmentedColormap.from_list('custom_blue', [(0.8, 0.9, 1), (0, 0, 0.8)])
+
 # 绘制平均降水量图像
 plt.figure(figsize=(10, 6))
-plt.imshow(mean_precipitation, cmap='viridis', aspect='auto', norm=colors.Normalize(vmin=0, vmax=np.nanmax(mean_precipitation)))
+plt.imshow(mean_precipitation, cmap=cmap, aspect='auto', norm=colors.Normalize(vmin=0, vmax=np.nanmax(mean_precipitation)))
 plt.colorbar(label='Mean Precipitation (mm)')
 plt.title('Mean Precipitation Over the Study Period')
 plt.xlabel('Longitude')
