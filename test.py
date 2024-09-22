@@ -20,7 +20,7 @@ def create_mask(array):
         raise ValueError("输入数组的形状必须为(22645, 144, 256)")
     
     # 创建mask，等于-99.9的元素对应False，其他元素对应True
-    mask = array != -99.9
+    mask = array >= 0
     return mask
 
 

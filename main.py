@@ -21,7 +21,7 @@ times_var = pre_set.variables['time'][:]  # 获取年份数据
 pre_var = pre_set.variables['pre'][:]  # 获取降水量数据 (time, latitude, longitude)
 
 # 掩码(144*256, 在国界内为 True，国界外为 False)
-mask = pre_var != -99.9
+mask = pre_var >= 0
 
 # 获取国界内的降水量数据
 masked_pre = np.where(mask, pre_var, np.nan)  # 使用 NaN 替换国界外的降水量
