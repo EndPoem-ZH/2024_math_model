@@ -3,6 +3,7 @@ import numpy as np
 import netCDF4 as nc
 import matplotlib.pyplot as plt
 
+
 # 打开文件
 pre_set = nc.Dataset('database/CHM_PRE_0.25dg_19612022.nc')
 
@@ -24,11 +25,11 @@ end_hours = (end_date - base_time).total_seconds() / 3600  # 从1961到2020的�
 time_mask = (time_values >= start_hours) & (time_values <= end_hours)
 time_indices = np.where(time_mask)[0]  # 1990年到2020年之间的所有时间索引
 
-# 创建每个年份的掩码
+# 创建存储每年总降水量的列表
 years = np.arange(1990, 2021)  # 1990到2020年
-yearly_means = []  # 用于存储每年的全国平均降水量
+yearly_totals = []  # 用于存储每年的全国总降水量
 
-# 计算每年的平均降水量
+# 循环计算每年的全国总降水量
 for year in years:
     # 计算每一年开始和结束的小时数
     year_start = datetime.datetime(year, 1, 1)
@@ -37,7 +38,7 @@ for year in years:
     start_hours_year = (year_start - base_time).total_seconds() / 3600
     end_hours_year = (year_end - base_time).total_seconds() / 3600
     
-    # 找到每个年份对应的时间索引
+    # 找到每年对应的时间索引
     year_mask = (time_values >= start_hours_year) & (time_values <= end_hours_year)
     year_indices = np.where(year_mask)[0]
     
@@ -47,26 +48,36 @@ for year in years:
     # 掩码，确保国界内的有效降水量 (假设 >= 0 为有效数据)
     mask = pre_var_year >= 0
     masked_pre_year = np.where(mask, pre_var_year, np.nan)  # 使用 NaN 替换无效数据
+# 计算该年份中每一天的单位面积降水量，忽略空间维度上的 NaN 值
+    masked_pre, axis=(1, 2)
+    # 计算该年份的全国总降水量，忽略 NaN 值
+    mean_precipitation_year = np.nanmean(masked_pre_year, axis=(1, 2))
+    total_precipitation_year = np.nansum(mean_precipitation_year)  # 计算总降水量
     
-    # 计算该年份的全国平均降水量，忽略空间维度上的 NaN 值
-    mean_precipitation_year = np.nanmean(masked_pre_year)
-    
-    # 将每年的全国平均降水量保存起来
-    yearly_means.append(mean_precipitation_year)
+    # 将每年的全国总降水量保存起来
+    yearly_totals.append(total_precipitation_year)
 
 # 关闭 netCDF 数据集
 pre_set.close()
 
-# 绘制折线图
+
+
+# 绘制年总降水量折线图
 plt.figure(figsize=(10, 6))
-plt.plot(years, yearly_means, marker='o', linestyle='-', color='b')
-plt.title('Annual Mean Precipitation in China (1990-2020)')
+plt.plot(years, yearly_totals, marker='o', linestyle='-', color='b', label='Annual Total Precipitation')
+
+
+# 设置图形格式
+plt.title('Annual Total Precipitation in China (1990-2020)')
 plt.xlabel('Year')
-plt.ylabel('Mean Precipitation (mm)')
+plt.ylabel('Total Precipitation (mm)')
 plt.grid(True)
-plt.xticks(ticks=years, rotation=45)  # x轴上显示每一年
+plt.legend()
+
+# 美化 x 轴
+plt.xticks(ticks=years[::2], rotation=45)  # 每两年显示一次年份，并旋转标签
 plt.tight_layout()
 
-# 显示折线图
+# 显示图像
 plt.show()
 
