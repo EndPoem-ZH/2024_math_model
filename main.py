@@ -40,7 +40,17 @@ time_indices = np.where(time_mask)[0]  # 获取对应的时间索引
 pre_vara = pre_set.variables['pre']  # 假设降水量变量名为'pre'
 pre_var = pre_vara[time_indices, :, :]  # 根据时间索引提取对应的数据
 
+# # 创建一个与经纬度维度相同大小的数组，用于存储大于五十的数据个数
+# count_greater_than_50 = np.zeros((144, 256), dtype=int)
 
+# # 遍历三维数组，统计每个经纬度位置大于五十的数据个数
+# for t in range(10958):
+#     mask = pre_var[t, :, :] > 50
+#     count_greater_than_50[mask] += 1
+
+# # 打印结果
+# print("Count of values greater than 50 at each latitude and longitude:")
+# print(count_greater_than_50)
 # 掩码(144*256, 在国界内为 True，国界外为 False)
 mask = pre_var >= 0
 
@@ -48,17 +58,26 @@ mask = pre_var >= 0
 masked_pre = np.where(mask, pre_var, np.nan)  # 使用 NaN 替换国界外的降水量
 
 # 计算国界内的平均降水量，排除 NaN 值
-mean_precipitation = np.nanmean(masked_pre, axis=0) * 365  # 计算年平均值 (latitude, longitude)
+mean_precipitation = np.nanmean(masked_pre, axis=0)  # 计算年平均值 (latitude, longitude)
 
+# 初始化一个形状为 (144, 256) 的数组，用于存储大于50的降水量数据的个数
+count_greater_50 = np.zeros((144, 256), dtype=int)
+
+# 遍历每个时间步，统计大于50的降水量数据的个数
+for t in range(masked_pre.shape[0]):
+    count_greater_50 += (masked_pre[t, :, :] > 50).astype(int)
+
+# 打印结果
+print("Count of precipitation values greater than 50 at each latitude and longitude:\n", count_greater_50)
 # 打印形状和示例数据
-print("Masked Precipitation Shape:", masked_pre.shape)
-print("Mean Precipitation Shape:", mean_precipitation.shape)
-
+# print("Masked Precipitation Shape:", masked_pre.shape)
+# print("Mean Precipitation Shape:", mean_precipitation.shape)
+print("Shape:", count_greater_50.shape)
 # 绘图
 # 绘制平均降水量图像
 plt.figure(figsize=(10, 6))
-plt.imshow(mean_precipitation, cmap='Blues', aspect='auto', 
-           norm=colors.Normalize(vmin=0, vmax=np.nanmax(mean_precipitation)))
+plt.imshow(count_greater_50, cmap='Blues', aspect='auto', 
+           norm=colors.Normalize(vmin=0, vmax=np.nanmax(count_greater_50)))
 plt.colorbar(label='Mean Precipitation (mm)')
 plt.title('Mean Precipitation Over the Study Period')
 plt.xlabel('Longitude')
