@@ -47,18 +47,32 @@ mask = pre_var >= 0
 # 获取国界内的降水量数据
 masked_pre = np.where(mask, pre_var, np.nan)  # 使用 NaN 替换国界外的降水量
 
+# 边缘裁剪，以便稍后和高程图对应
 # 计算国界内的平均降水量，排除 NaN 值
 mean_precipitation = np.nanmean(masked_pre, axis=0) * 365  # 计算年平均值 (latitude, longitude)
+# 找到所有不是 NaN 的行
+valid_rows = ~np.all(np.isnan(mean_precipitation), axis=1)
+# 找到所有不是 NaN 的列
+valid_cols = ~np.all(np.isnan(mean_precipitation), axis=0)
+# 使用有效行和列创建新的数组
+trimmed_pre = mean_precipitation[valid_rows][:, valid_cols]
+
+
+
+
+
+
+
 
 # 打印形状和示例数据
 print("Masked Precipitation Shape:", masked_pre.shape)
 print("Mean Precipitation Shape:", mean_precipitation.shape)
+print("Trimmed Precipitation Shape:", trimmed_pre.shape)
 
 # 绘图
 # 绘制平均降水量图像
-plt.figure(figsize=(10, 6))
-plt.imshow(mean_precipitation, cmap='Blues', aspect='auto', 
-           norm=colors.Normalize(vmin=0, vmax=np.nanmax(mean_precipitation)))
+plt.figure(1)
+plt.imshow(mean_precipitation, cmap='Blues')
 plt.colorbar(label='Mean Precipitation (mm)')
 plt.title('Mean Precipitation Over the Study Period')
 plt.xlabel('Longitude')
