@@ -61,23 +61,18 @@ for year in years:
 pre_set.close()
 
 
-
 # 绘制年总降水量折线图
 plt.figure(figsize=(10, 6))
 plt.plot(years, yearly_totals, marker='o', linestyle='-', color='b', label='Annual Total Precipitation')
 
 
-# 设置图形格式
+# 设置图形格式并显示
 plt.title('Annual Total Precipitation in China (1990-2020)')
 plt.xlabel('Year')
 plt.ylabel('Total Precipitation (mm)')
 plt.grid(True)
 plt.legend()
-
-# 美化 x 轴
 plt.xticks(ticks=years[::2], rotation=45)  # 每两年显示一次年份，并旋转标签
 plt.tight_layout()
-
-# 显示图像
 plt.show()
 
