@@ -1,3 +1,4 @@
+from matplotlib.colors import ListedColormap
 import rasterio
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,6 +10,9 @@ import pwlf
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 设置默认字体为SimHei以显示中文
+plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 
 # ------------------------------------------------ #
 # 函数功能：打开TIFF文件
@@ -78,26 +82,43 @@ def tiff_preprocess(tif_file, no_data, limit_min, limit_max):
 ### 从这里开始
 
 # 原始数组大小：(5019, 7062) 
+
 # 高程图
 tif_dem = 'database\Geo\TIFF\chinadem_geo.tif'
 dem_data = tiff_preprocess(tif_dem, -32768, -154.31, 8848.86)
+
 # 坡度图
 tif_slope = 'database\Albers_105\TIFF\chdem_Slope.tif'
 slope_data = tiff_preprocess(tif_slope, -3.4e38, -10, 59.79)
 
-# 展示：查看此时的高程图
-plt.figure(figsize=[4,3])
-plt.imshow(dem_data)
-plt.title('China Digital Elevation Map (0.25°)')
-plt.colorbar()  # 显示颜色条
+
+# 高程图颜色映射：自定义地形颜色梯度（绿色 -> 棕色 -> 白色）
+elevation_cmap = ListedColormap(["darkgreen", "green", "lightgreen", "yellow", "brown", "white"])
+
+# 展示：查看高程图
+plt.figure(figsize=[6, 4])  # 调整图形尺寸
+plt.imshow(dem_data, cmap=elevation_cmap)  # 使用自定义的地形颜色映射
+plt.title('中国数字高程图 (0.25°)', fontsize=14)  # 设置中文标题
+plt.colorbar(label='高度 (米)', orientation='vertical', shrink=0.8)  # 调整颜色条尺寸和标签
+plt.xlabel('经度', fontsize=12)
+plt.ylabel('纬度', fontsize=12)
+plt.grid(True, linestyle='--', alpha=0.5)  # 添加网格线
 plt.show(block=False)
 
-# 展示：查看此时的坡度图
-plt.figure(figsize=[4,3])
-plt.imshow(slope_data, cmap='viridis')  # 使用不同的颜色映射
-plt.colorbar()  # 显示颜色条
-plt.title('China Digital Slope Map (0.25°)')
+# 坡度图颜色映射：浅色 -> 深色（平缓 -> 陡峭）
+slope_cmap = plt.cm.get_cmap('magma')
+
+# 展示：查看坡度图
+plt.figure(figsize=[6, 4])  # 调整图形尺寸
+plt.imshow(slope_data, cmap=slope_cmap)  # 使用“magma”颜色映射，渐变清晰
+plt.title('中国数字坡度图 (0.25°)', fontsize=14)  # 设置中文标题
+plt.colorbar(label='坡度 (度)', orientation='vertical', shrink=0.8)  # 设置颜色条并缩小以适应图形
+plt.xlabel('经度', fontsize=12)
+plt.ylabel('纬度', fontsize=12)
+plt.grid(True, linestyle='--', alpha=0.5)  # 同样添加网格线
 plt.show(block=False)
+
+
 
 
 # 打开降水量文件，得到1990-2020降水量数据
@@ -183,9 +204,9 @@ print("cost is: ", cost)
 pred_y = w * x + b
 plt.plot(x, pred_y, c='r',label='线性拟合')
 # 补充题图等信息
-plt.title("Scatter Plot of Mean Precipitation vs. Trimmed Scaled DEM")
-plt.xlabel("Elevation/m")
-plt.ylabel("Mean Precipitation/mm·year^{-1}")
+plt.title("平均降水量与裁剪缩放DEM的散点图")
+plt.xlabel("高程/米m")
+plt.ylabel("平均降水量/毫米·年")
 plt.grid()
 plt.show(block=False)
 
@@ -213,35 +234,130 @@ y_fit_m = y_fit[fit_mask]
 
 # 绘图
 plt.figure()
-plt.scatter(x, y, color='blue', label='Original data',s=1)
-plt.plot(x_fit_m, y_fit_m, color='red', label='Segmented linear fitting')
-plt.title('Segmented linear regression of precipitation vs. elevation')
-plt.xlabel('Elevation/m')
-plt.ylabel('Precipitation/mm·d^{-1}')
+plt.scatter(x, y, color='blue', label='原始数据', s=1)
+plt.plot(x_fit_m, y_fit_m, color='red', label='分段线性拟合')
+plt.title('降水量与海拔的分段线性回归')
+plt.xlabel('海拔/米')
+plt.ylabel('降水量/毫米·天')
 plt.legend()
 plt.grid()
 plt.show()
 
+# # 随机森林
+# # 划分训练集和测试集
+# # X 包括海拔、温度和坡度，y 为暴雨下的日降水量(>16mm)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# 随机森林
-# 划分训练集和测试集
-# X包括海拔、温度和坡度，y为暴雨下的日降水量(>16mm)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# # 构建随机森林回归模型
+# rf = RandomForestRegressor(n_estimators=100, random_state=42)  # 设置决策树的数量为100
 
-# 构建随机森林回归模型
-rf = RandomForestRegressor(n_estimators=100, random_state=42)  # 设置决策树的数量为100
+# # 训练模型
+# rf.fit(X_train, y_train)
+
+# # 预测结果
+# y_pred = rf.predict(X_test)
+
+# # 模型评估
+# mse = mean_squared_error(y_test, y_pred)
+# mae = mean_absolute_error(y_test, y_pred)
+# r2 = r2_score(y_test, y_pred)
+
+# print('均方误差:', mse)
+# print('平均绝对误差 (MAE):', mae)
+# print('判定系数 (R²):', r2)
+
+
+
+# 定义函数：使用IQR法剔除异常值
+def remove_outliers_iqr(X, y):
+    # 计算目标变量（降雨量）的四分位数
+    Q1 = np.percentile(y, 25)
+    Q3 = np.percentile(y, 75)
+    IQR = Q3 - Q1  # 四分位距
+
+    # 计算上限和下限，用于判断异常值
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+
+    # 创建布尔掩码，筛选出正常范围内的数据
+    mask = (y >= lower_bound) & (y <= upper_bound)
+
+    # 返回剔除异常值后的特征和目标变量
+    return X[mask], y[mask]
+
+# 打开降水量文件，得到1990-2020降水量数据
+filename = 'database/CHM_PRE_0.25dg_19612022.nc'
+year_begin = 1990
+year_end = 2020
+masked_pre = getPre(filename, year_begin, year_end)
+mean_precipitation = np.nanmean(masked_pre, axis=0) * 365  
+
+# 创建布尔掩码，筛选有效（非NaN）数据
+valid_mask_dem = ~np.isnan(dem_data)
+valid_mask_slope = ~np.isnan(slope_data)
+valid_mask_precip = ~np.isnan(mean_precipitation)
+valid_mask = valid_mask_dem & valid_mask_precip & valid_mask_slope
+
+# 过滤有效数据
+X = np.column_stack((dem_data[valid_mask], slope_data[valid_mask]))  # 海拔和坡度作为特征
+y = mean_precipitation[valid_mask]  # 降雨量作为目标变量
+
+# 使用IQR法剔除异常值 
+X_filtered, y_filtered = remove_outliers_iqr(X, y)
+
+# 将数据划分为训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X_filtered, y_filtered, test_size=0.3, random_state=42)
+
+# 创建随机森林回归模型
+rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
 
 # 训练模型
-rf.fit(X_train, y_train)
+rf_model.fit(X_train, y_train)
 
-# 预测结果
-y_pred = rf.predict(X_test)
+# 预测测试集的降雨量
+y_pred = rf_model.predict(X_test)
 
-# 模型评估
+# 评估模型性能
 mse = mean_squared_error(y_test, y_pred)
 mae = mean_absolute_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 
-print('Mean Squared Error (MSE):', mse)
-print('Mean Absolute Error (MAE):', mae)
-print('R-squared (R2):', r2)
+print(f'均方误差 (MSE): {mse:.2f}')
+print(f'平均绝对误差 (MAE): {mae:.2f}')
+print(f'决定系数 (R²): {r2:.2f}')
+
+# 绘制实际降雨量 vs 预测降雨量的散点图
+plt.figure(figsize=(6, 6))
+
+# 绘制散点图并调整点的透明度和大小
+plt.scatter(y_test, y_pred, alpha=0.6, s=10, color='blue', label="数据点")
+
+# 绘制参考线：y = x (理想情况)
+plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 'r--', lw=2, label="理想参考线")
+
+# 设置坐标轴范围，去除空白
+plt.xlim([min(y_test) - 100, max(y_test) + 100])
+plt.ylim([min(y_pred) - 100, max(y_pred) + 100])
+
+# 设置图表标题和标签
+plt.xlabel('实际降雨量 (mm/年)', fontsize=12)
+plt.ylabel('预测降雨量 (mm/年)', fontsize=12)
+plt.title('随机森林模型：实际 vs 预测降雨量 (剔除异常值)', fontsize=14)
+
+# 显示模型评估结果
+mse_text = f'MSE: {mse:.2f}'
+mae_text = f'MAE: {mae:.2f}'
+r2_text = f'R²: {r2:.2f}'
+plt.text(0.05, 0.9, mse_text, transform=plt.gca().transAxes, fontsize=12, color='black')
+plt.text(0.05, 0.85, mae_text, transform=plt.gca().transAxes, fontsize=12, color='black')
+plt.text(0.05, 0.8, r2_text, transform=plt.gca().transAxes, fontsize=12, color='black')
+
+# 显示网格线和图例
+plt.grid(True, linestyle='--', alpha=0.5)
+plt.legend()
+
+# 显示图像
+plt.show()
+
+
+

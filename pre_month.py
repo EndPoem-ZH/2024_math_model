@@ -42,7 +42,7 @@ mask = pre_data >= 0  # 只保留有效降水量
 masked_pre = np.where(mask, pre_data, np.nan)
 
 
-total_precipitation = np.nansum(masked_pre, axis=(1, 2))  # 按时间计算全国平均降水量
+total_precipitation = np.nanmean(masked_pre, axis=(1, 2))  # 按时间计算全国平均降水量
 
 data['Precipitation'] = total_precipitation
 
