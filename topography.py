@@ -150,17 +150,16 @@ x_max = max(x)
 y_max = max(y)
 s_max = max(s)
 
+# ------------------------------------------------ #
 # 定义损失函数
 def compute_cost(w, b, x, y):
     total_cost = 0
     M = len(x)
-
     # 逐点计算平方损失误差，然后求平均数
     for i in range(M):
         total_cost += (y[i] - w * x[i] - b) ** 2
-
     return total_cost / M
-
+# ------------------------------------------------ #
 # 定义算法拟合函数
 def average(data):
     sum = 0
@@ -168,29 +167,28 @@ def average(data):
     for i in range(num):
         sum += data[i]
     return sum / num
- 
+ # ------------------------------------------------ #
 # 定义核心拟合函数
 def fit(x, y):
     M = len(x)
     x_bar = average(x)
- 
+
     sum_yx = 0
     sum_x2 = 0
     sum_delta = 0
- 
+
     for i in range(M):
         sum_yx += y[i] * (x[i] - x_bar)
         sum_x2 += x[i] ** 2
     # 根据公式计算w
     w = sum_yx / (sum_x2 - M * (x_bar ** 2))
- 
+
     for i in range(M):
         sum_delta += (y[i] - w * x[i])
     b = sum_delta / M
- 
+
     return w, b
- 
-# ------------4. 测试------------------
+# ------------------------------------------------ #
 
 # 创建散点图
 plt.figure()
@@ -204,10 +202,11 @@ print("cost is: ", cost)
 # 针对每一个x，计算出预测的y值
 pred_y = w * x + b
 plt.plot(x, pred_y, c='r',label='线性拟合')
+
 # 补充题图等信息
-plt.title("平均降水量与裁剪缩放DEM的散点图")
-plt.xlabel("高程/米m")
-plt.ylabel("平均降水量/毫米·年")
+plt.title("平均降水量与海拔的散点图")
+plt.xlabel("海拔/米")
+plt.ylabel("平均降水量/毫米·年^(-1)")
 plt.grid()
 plt.show(block=False)
 
@@ -216,7 +215,7 @@ my_pwlf = pwlf.PiecewiseLinFit(x, y)
 # 设置节点（可以根据需要调整节点的数量和位置）
 breaks = [1500,4000,x_max]
 my_pwlf.fit_with_breaks(breaks)
-#res = my_pwlf.fitfast(3) # 3表示最多可以有3个段
+# res = my_pwlf.fitfast(3) # 3表示最多可以有3个段
 
 # 查看拟合信息
 print(my_pwlf.intercepts)
@@ -228,6 +227,7 @@ print(my_pwlf.ssr)
 x_fit = np.linspace(0, x_max, 100)
 y_fit = my_pwlf.predict(x_fit)
 
+# 预测值应大于0
 fit_mask = y_fit >= 0
 x_fit_m = x_fit[fit_mask]
 y_fit_m = y_fit[fit_mask]
@@ -242,20 +242,21 @@ plt.xlabel('海拔/米')
 plt.ylabel('降水量/毫米·天')
 plt.legend()
 plt.grid()
-plt.show()
+plt.show(block=False)
 
 # 散点图
+plt.figure()
 x_eps = dem_data[valid_mask_eps]
 y_eps = mean_precipitation[valid_mask_eps]
 s_eps = slope_data[valid_mask_eps]
 ax = plt.subplot(projection = '3d')  # 创建一个三维的绘图工程
-ax.set_title('3d_image_show')  # 设置本图名称
-ax.scatter(x_eps, y_eps, s_eps, c = 'r')   # 绘制数据点 c: 'r'红色，'y'黄色，等颜色
+ax.set_title('降水量关于海拔和坡度的散点图')  # 设置图名称
+ax.scatter(x_eps, y_eps, s_eps, c = 'r', s=1)   # 绘制数据点 c: 'r'红色，'y'黄色，等颜色
  
-ax.set_xlabel('X')  # 设置x坐标轴
-ax.set_ylabel('Y')  # 设置y坐标轴
-ax.set_zlabel('Z')  # 设置z坐标轴
-plt.show()
+ax.set_xlabel('海拔/m')  # 设置x坐标轴
+ax.set_ylabel('降水量/mm·年^(-1)')  # 设置y坐标轴
+ax.set_zlabel('坡度/°')  # 设置z坐标轴
+plt.show(block=False)
 
 
 # # 随机森林
@@ -342,7 +343,7 @@ print(f'平均绝对误差 (MAE): {mae:.2f}')
 print(f'决定系数 (R²): {r2:.2f}')
 
 # 绘制实际降雨量 vs 预测降雨量的散点图
-plt.figure(figsize=(6, 6))
+plt.figure()
 
 # 绘制散点图并调整点的透明度和大小
 plt.scatter(y_test, y_pred, alpha=0.6, s=10, color='blue', label="数据点")
