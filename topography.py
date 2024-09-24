@@ -139,6 +139,7 @@ valid_mask_precip = ~np.isnan(mean_precipitation)
 
 # 找到同时有效的数据索引
 valid_mask = valid_mask_dem & valid_mask_precip
+valid_mask_eps = valid_mask & valid_mask_slope
 
 # 过滤有效数据
 x = dem_data[valid_mask]
@@ -243,9 +244,23 @@ plt.legend()
 plt.grid()
 plt.show()
 
+# 散点图
+x_eps = dem_data[valid_mask_eps]
+y_eps = mean_precipitation[valid_mask_eps]
+s_eps = slope_data[valid_mask_eps]
+ax = plt.subplot(projection = '3d')  # 创建一个三维的绘图工程
+ax.set_title('3d_image_show')  # 设置本图名称
+ax.scatter(x_eps, y_eps, s_eps, c = 'r')   # 绘制数据点 c: 'r'红色，'y'黄色，等颜色
+ 
+ax.set_xlabel('X')  # 设置x坐标轴
+ax.set_ylabel('Y')  # 设置y坐标轴
+ax.set_zlabel('Z')  # 设置z坐标轴
+plt.show()
+
+
 # # 随机森林
 # # 划分训练集和测试集
-# # X 包括海拔、温度和坡度，y 为暴雨下的日降水量(>16mm)
+# # X包括海拔、温度和坡度，y为暴雨下的日降水量(>16mm)
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # # 构建随机森林回归模型
